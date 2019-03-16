@@ -1,6 +1,7 @@
 package com.example.huangyachong.myapplication.widget;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.FloatRange;
 import android.support.annotation.LayoutRes;
@@ -36,6 +37,9 @@ public abstract class BaseDialog extends DialogFragment {
     private int mWidth;
     private int mHeight;
 
+    //dialog消失监听
+    private DialogDismissListener dialogDismissListener;
+
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
@@ -53,8 +57,13 @@ public abstract class BaseDialog extends DialogFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(mLayoutResId, container, false);
-        convertView(ViewHolder.create(view), this);
         return view;
+    }
+    
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        convertView(ViewHolder.create(view), this);
     }
 
     @Override
@@ -163,6 +172,19 @@ public abstract class BaseDialog extends DialogFragment {
      */
     public BaseDialog setOutCancel(boolean outCancel) {
         mOutCancel = outCancel;
+        return this;
+    }
+
+    @Override
+    public void onDismiss(DialogInterface dialog) {
+        super.onDismiss(dialog);
+        if (dialogDismissListener!=null){
+            dialogDismissListener.dismiss();
+        }
+    }
+
+    public BaseDialog setOnDismissListener(DialogDismissListener dialogDismissListener){
+        this.dialogDismissListener = dialogDismissListener;
         return this;
     }
 
