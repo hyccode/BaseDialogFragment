@@ -9,7 +9,6 @@ import android.support.annotation.Nullable;
 import android.support.annotation.StyleRes;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentManager;
-import android.util.DisplayMetrics;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +20,9 @@ import com.example.huangyachong.myapplication.R;
 
 
 /**
- * Dialog通用样式
+ * author : hyc
+ * date   : 2019/3/15 1:05 PM
+ * desc   : 公用样式Dialog
  */
 public abstract class BaseDialog extends DialogFragment {
 
@@ -34,8 +35,17 @@ public abstract class BaseDialog extends DialogFragment {
     private int mAnimStyle = 0;//进入退出动画
     private boolean mOutCancel = true;//点击外部取消
     private Context mContext;
+
+    //dialog宽高
     private int mWidth;
     private int mHeight;
+
+    //dialog的位置，默认居中
+    private int gravity = Gravity.CENTER;
+
+    //相对与原始位置的偏移量
+    private int x = 0;
+    private int y = 0;
 
     //dialog消失监听
     private DialogDismissListener dialogDismissListener;
@@ -59,7 +69,7 @@ public abstract class BaseDialog extends DialogFragment {
         View view = inflater.inflate(mLayoutResId, container, false);
         return view;
     }
-    
+
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -81,20 +91,30 @@ public abstract class BaseDialog extends DialogFragment {
             //设置dialog显示位置
             if (mShowBottomEnable) {
                 params.gravity = Gravity.BOTTOM;
+            } else {
+                params.gravity = gravity;
+            }
+
+            //设置dialog偏移量
+            if (x > 0) {
+                params.x = x;
+            }
+            if (y > 0) {
+                params.y = y;
             }
 
             //设置dialog宽度
             if (mWidth == 0) {
-                params.width = getScreenWidth(getContext()) - 2 * dp2px(getContext(), mMargin);
+                params.width = WindowManager.LayoutParams.MATCH_PARENT;
             } else {
-                params.width = dp2px(getContext(), mWidth);
+                params.width = mWidth;
             }
 
             //设置dialog高度
             if (mHeight == 0) {
                 params.height = WindowManager.LayoutParams.WRAP_CONTENT;
             } else {
-                params.height = dp2px(getContext(), mHeight);
+                params.height = mHeight;
             }
 
             //设置dialog动画
@@ -131,6 +151,7 @@ public abstract class BaseDialog extends DialogFragment {
 
     /**
      * 设置宽高
+     * 可以传WindowManager.LayoutParams.WRAP_CONTENT，WindowManager.LayoutParams.MATCH_PARENT，具体的宽高
      *
      * @param width
      * @param height
@@ -150,6 +171,41 @@ public abstract class BaseDialog extends DialogFragment {
      */
     public BaseDialog setMargin(int margin) {
         mMargin = margin;
+        return this;
+    }
+
+
+    /**
+     * 设置dialog偏移量
+     * lp.x与lp.y表示相对于原始位置的偏移.
+     * 当参数值包含Gravity.LEFT时,对话框出现在左边,所以lp.x就表示相对左边的偏移,负值无效.
+     * 当参数值包含Gravity.RIGHT时,对话框出现在右边,所以lp.x就表示相对右边的偏移,负值无效.
+     * 当参数值包含Gravity.TOP时,对话框出现在上边,所以lp.y就表示相对上边的偏移,负值无效.
+     * 当参数值包含Gravity.BOTTOM时,对话框出现在下边,所以lp.y就表示相对下边的偏移,负值无效.
+     * 当参数值包含Gravity.CENTER_HORIZONTAL时
+     * ,对话框水平居中,所以lp.x就表示在水平居中的位置移动lp.x像素,正值向右移动,负值向左移动.
+     * 当参数值包含Gravity.CENTER_VERTICAL时
+     * ,对话框垂直居中,所以lp.y就表示在垂直居中的位置移动lp.y像素,正值向右移动,负值向左移动.
+     * gravity的默认值为Gravity.CENTER
+     *
+     * @param x
+     * @param y
+     * @return
+     */
+    public BaseDialog setLayoutParamsWY(int x, int y) {
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+
+    /**
+     * 是否显示的位置
+     *
+     * @param gravity
+     * @return
+     */
+    public BaseDialog setShowGravity(int gravity) {
+        this.gravity = gravity;
         return this;
     }
 
@@ -178,12 +234,12 @@ public abstract class BaseDialog extends DialogFragment {
     @Override
     public void onDismiss(DialogInterface dialog) {
         super.onDismiss(dialog);
-        if (dialogDismissListener!=null){
+        if (dialogDismissListener != null) {
             dialogDismissListener.dismiss();
         }
     }
 
-    public BaseDialog setOnDismissListener(DialogDismissListener dialogDismissListener){
+    public BaseDialog setOnDismissListener(DialogDismissListener dialogDismissListener) {
         this.dialogDismissListener = dialogDismissListener;
         return this;
     }
@@ -208,19 +264,5 @@ public abstract class BaseDialog extends DialogFragment {
      */
     public abstract void convertView(ViewHolder holder, BaseDialog dialog);
 
-    /**
-     * 获取屏幕宽度
-     *
-     * @param context
-     * @return
-     */
-    public static int getScreenWidth(Context context) {
-        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-        return displayMetrics.widthPixels;
-    }
 
-    public static int dp2px(Context context, float dipValue) {
-        final float scale = context.getResources().getDisplayMetrics().density;
-        return (int) (dipValue * scale + 0.5f);
-    }
 }
